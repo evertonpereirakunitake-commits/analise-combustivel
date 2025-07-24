@@ -89,16 +89,28 @@
       if(!tipo||isNaN(temp)||isNaN(dens)) return alert('Preencha todos os campos!');
       const ref=densRef[tipo][temp];
       if(!ref) return alert(`Sem referência ANP para ${temp}°C.`);
-      const ok=dens>=ref.min&&dens<=ref.max;
-      let teor='–';
-      
+      let ok = dens >= ref.min && dens <= ref.max;
+let teor = '–';
+
 if (tipo === 'etanol') {
     const densStr = dens.toFixed(4);
     const tempStr = temp.toFixed(1);
-    teor = (tabelaEtanol[tempStr] && tabelaEtanol[tempStr][densStr]) 
-        ? tabelaEtanol[tempStr][densStr] + ' % m/m' 
-        : 'Valor não encontrado';
+    const teorValor = tabelaEtanol[tempStr]?.[densStr];
+
+    if (teorValor) {
+        const teorNum = parseFloat(teorValor);
+        const minTeor = 92.70;
+        const maxTeor = 95.00;
+        const dentroFaixaTeor = teorNum >= minTeor && teorNum <= maxTeor;
+
+        teor = `${teorValor} % m/m <span style="color:${dentroFaixaTeor ? '#10B981' : '#E53E3E'};">(${dentroFaixaTeor ? '✔ Conforme' : '✖ Fora do padrão'})</span>`;
+        ok = ok && dentroFaixaTeor;
+    } else {
+        teor = 'Valor não encontrado';
+        ok = false;
+    }
 }
+
 
       // Exibir Resultados
       const statusEl=document.getElementById('status');
