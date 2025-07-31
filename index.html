@@ -36,10 +36,97 @@
 <!-- Campos Gerais -->
 <div class="field"><label>Nota Fiscal</label><input id="nf" placeholder="Nº da nota fiscal"/></div>
 <div class="field"><label>Amostra</label><input id="amostra" placeholder="Identificação da amostra"/></div>
-<div class="field"><label>Fornecedor</label><input id="fornecedor" placeholder="Nome do fornecedor"/></div>
+<div class="field">
+  <label>Distribuidor</label>
+  <input list="fornecedores" id="fornecedor" placeholder="Digite ou selecione o distribuidor"/>
+  <datalist id="fornecedores">
+    <!-- Distribuidores serão carregados dinamicamente -->
+  </datalist>
+</div>
+
+<div class="field">
+  <label>CNPJ do Distribuidor</label>
+  <input id="cnpjFornecedor" readonly/>
+</div>
 <div class="field"><label>Litragem (L)</label><input id="litros" placeholder="Litros" step="0.1" type="number"/></div>
-<div class="field"><label>Motorista</label><input id="motorista" placeholder="Nome do motorista"/></div>
-<div class="field"><label>Posto / Local</label><input id="posto" placeholder="Nome do posto ou local"/></div>
+<div class="field">
+  <label>Transportador</label>
+  <input list="transportadores" id="transportador" placeholder="Digite ou selecione o transportador"/>
+  <datalist id="transportadores">
+    <!-- Transportadores serão carregados dinamicamente -->
+  </datalist>
+</div>
+
+<div class="field">
+  <label>CNPJ do Transportador</label>
+  <input id="cnpjTransportador" readonly/>
+</div>
+
+<div class="field">
+  <label>Motorista</label>
+  <input list="motoristas" id="motorista" placeholder="Digite ou selecione o motorista"/>
+  <datalist id="motoristas">
+    <!-- Motoristas serão carregados dinamicamente -->
+  </datalist>
+</div>
+
+<div class="field">
+  <label>Placa do Caminhão</label>
+  <input type="text" id="placa" placeholder="Digite a placa"/>
+</div>
+
+<div class="field">
+  <label>Postos Revendedores</label>
+  <input list="postos" id="posto" placeholder="Digite ou selecione o posto"/>
+  <datalist id="postos">
+    <option value="AUTO POSTO JARDIM ITALIA LTDA">
+    <option value="POSTO DE SERVICO RIO BRANCO ITAPETININGA LTDA">
+    <option value="AUTO POSTO KARZ LTDA">
+    <option value="POSTO DE SERVICO SÂO JOSÉ DE ITAPETININGA LTDA">
+    <option value="POSTO DE ABASTECIMENTO VITORIA DE ITAPETININGA LTDA">
+    <option value="AUTO POSTO BENEDETTI SAO CARLOS LTDA">
+    <option value="POSTO DE ABASTECIMENTOS E SERVICO VITORIA LTDA">
+    <option value="AUTO POSTO BENEDETTI DE BOTUCATU LTDA">
+    <option value="AUTO POSTO ALIANCA DE PORTO FELIZ LTDA">
+    <option value="AUTO POSTO RODOSALTO LTDA">
+    <option value="POSTO DE ABASTECIMENTO ITUANO LTDA">
+    <option value="POSTO FELIX FAGUNDES POSTO AUTOMOTIVO LTDA">
+    <option value="POSTO MAXXI GNV AUTO POSTO LTDA">
+    <option value="POSTO DE ABASTECIMENTO HC LTDA">
+    <option value="AUTO POSTO BOA VISTA LTDA">
+    <option value="AUTO POSTO WANEL VILLE LTDA">
+    <option value="POSTO DE ABAST.E TRANSP DE COMB VITORIA DE SOROCABA LTDA">
+    <option value="POSTO DE SERVICOS RAFAELA LTDA">
+    <option value="AUTO POSTO SANTA CRUZ DE TATUÍ LTDA">
+    <option value="AUTO POSTO BENEDETTI DE ITAPEVA LTDA">
+    <option value="POSTO DE SERVICO VOTORANTINENSE LTDA">
+    <option value="AUTO POSTO BENEDETTI DE PRESIDENTE PRUDENTE LTDA">
+    <option value="AUTO POSTO REGISTRO 2 LTDA">
+    <option value="SAO MIGUEL AUTO POSTO DE MARILIA LTDA">
+    <option value="AUTO POSTO BENEDETTI DE ARACATUBA LTDA">
+    <option value="DALLAS CENTRO DE ABASTECIMENTO DE COMBUSTIVEIS LTDA">
+    <option value="AUTO POSTO BENEDETTI DE MARILIA LTDA">
+    <option value="POSTO DE SERVICO VENEZA LTDA">
+    <option value="POSTO ESTACAO COMERCIO DE DERIVADOS DE PETROLEO EIRELI">
+    <option value="AUTO POSTO BENEDETTI DE BIRIGUI LTDA">
+    <option value="POSTO GIGANTE DE OURINHOS LTDA">
+    <option value="AUTO POSTO TRIANGULO DE PRESIDENTE PRUDENTE LTDA">
+    <option value="AUTO POSTO A3 LTDA">
+    <option value="AUTO POSTO BENEDETTI DE SAO JOSE DO RIO PRETO LTDA">
+    <option value="AUTO POSTO BENEDETTI ARARAQUARA LTDA">
+    <option value="POSTO BENEDETTI DE OURINHOS">
+  </datalist>
+</div>
+
+<div class="field">
+  <label>CNPJ do Posto</label>
+  <input id="cnpjPosto" readonly/>
+</div>
+
+<div class="field">
+  <label>Endereço do Posto</label>
+  <input id="enderecoPosto" readonly/>
+</div>
 <div class="field"><label>Responsável</label><input id="responsavel" placeholder="Responsável pelo recebimento"/></div>
 <!-- Tipo de combustível -->
 <div class="field"><label>Tipo de Combustível</label>
@@ -51,7 +138,7 @@
 </select>
 </div>
 <!-- Campos adicionais -->
-<div class="field" id="field-percent" style="display:none;"><label>% Etanol (Gasolina)</label><input id="percent" max="100" min="0" step="0.1" type="number" value="27"/></div>
+<div class="field" id="field-percent" style="display:none;"><label>% Etanol (Gasolina)</label><input id="percent" max="100" min="0" step="0.1" type="number" value=""/></div>
 <div class="field" id="field-ph" style="display:none;"><label>pH (Etanol)</label><input id="ph" max="14" min="0" step="0.1" type="number"/></div>
 <!-- Medidas -->
 <div class="field"><label>Temperatura (°C)</label><input id="temp" max="40" min="15" step="0.5" type="number"/></div>
@@ -66,7 +153,14 @@
 <div><div class="section-title">Referência ANP</div><div id="dadosRef"></div></div>
 </div>
 </div>
-<button id="btnWhatsapp" style="display:none;margin-top:20px;background:#25D366;color:#fff;padding:1rem 2rem;font-size:1.2rem;">Compartilhar no WhatsApp</button>
+<button id="btnWhatsapp" style="display:none;margin-top:20px;background:#25D366;color:#fff;padding:1rem 2rem;font-size:1.2rem;">Compartilhar no WhatsApp</button> 
+<button id="btnPDF" 
+          style="width:100%; padding:0.75rem; background:#2563EB; 
+                 color:#fff; border:none; border-radius:6px; 
+                 font-weight:600; font-size:1rem; margin-top:1rem; 
+                 cursor:pointer;">
+    Gerar Relatório PDF
+  </button>
 <script>
     // Show/hide dynamic fields
     document.getElementById('tipo').addEventListener('change', function() {
@@ -117,17 +211,19 @@ if (tipo === 'etanol') {
       statusEl.textContent=ok?'✔ CONFORME':'✖ FORA DA FAIXA';
       statusEl.className='status '+(ok?'ok':'fail');
       let infoHTML=`
-        <div class="item"><strong>Nota Fiscal:</strong> ${document.getElementById('nf').value}</div>
-        <div class="item"><strong>Amostra:</strong> ${document.getElementById('amostra').value}</div>
-        <div class="item"><strong>Fornecedor:</strong> ${document.getElementById('fornecedor').value}</div>
-        <div class="item"><strong>Litragem:</strong> ${document.getElementById('litros').value} L</div>
-        <div class="item"><strong>Motorista:</strong> ${document.getElementById('motorista').value}</div>
-        <div class="item"><strong>Posto:</strong> ${document.getElementById('posto').value}</div>
-        <div class="item"><strong>Responsável:</strong> ${document.getElementById('responsavel').value}</div>
-        <div class="item"><strong>Tipo:</strong> ${tipo}</div>
-        <div class="item"><strong>Temperatura:</strong> ${temp}°C</div>
-        <div class="item"><strong>Densidade:</strong> ${dens} g/cm³</div>
-      `;
+  <div class="item"><strong>Nota Fiscal:</strong> ${document.getElementById('nf').value}</div>
+  <div class="item"><strong>Amostra:</strong> ${document.getElementById('amostra').value}</div>
+  <div class="item"><strong>Distribuidor:</strong> ${document.getElementById('fornecedor').value}</div>
+  <div class="item"><strong>CNPJ do Distribuidor:</strong> ${document.getElementById('cnpjFornecedor').value}</div>
+  <div class="item"><strong>Litragem:</strong> ${document.getElementById('litros').value} L</div>
+  <div class="item"><strong>Motorista:</strong> ${document.getElementById('motorista').value}</div>
+  <div class="item"><strong>Posto:</strong> ${document.getElementById('posto').value}</div>
+  <div class="item"><strong>Responsável:</strong> ${document.getElementById('responsavel').value}</div>
+  <div class="item"><strong>Tipo:</strong> ${tipo}</div>
+  <div class="item"><strong>Temperatura:</strong> ${temp}°C</div>
+  <div class="item"><strong>Densidade:</strong> ${dens} g/cm³</div>
+`;
+
       if(tipo==='gasolina') infoHTML+=`<div class="item"><strong>% Etanol:</strong> ${document.getElementById('percent').value}%</div>`;
       if(tipo==='etanol') infoHTML+=`<div class="item"><strong>pH:</strong> ${document.getElementById('ph').value}</div><div class="item"><strong>Teor:</strong> ${teor}</div>`;
       document.getElementById('dadosInfo').innerHTML=infoHTML;
@@ -1109,11 +1205,13 @@ if (tipo === 'etanol') {
 <!-- Botão do WhatsApp -->
 <button id="btnWhatsapp" style="display:none;margin-top:20px;background:#25D366;color:#fff;padding:1rem 2rem;font-size:1.2rem;">Compartilhar no WhatsApp</button>
 
+<!-- Script para mostrar botão e compartilhar no WhatsApp -->
 <script>
 document.getElementById('btnCalcular').onclick = function() {
   document.getElementById('resultado').style.display = 'block';
   document.getElementById('btnWhatsapp').style.display = 'block';
 };
+
 document.getElementById('btnWhatsapp').onclick = function() {
   var status = document.getElementById('status').textContent;
   var dados = document.getElementById('dadosInfo').textContent;
@@ -1123,6 +1221,450 @@ document.getElementById('btnWhatsapp').onclick = function() {
   window.open(url, '_blank');
 };
 </script>
+
+<!-- Script para preencher CNPJ e endereço automaticamente -->
+<script>
+const postos = {
+  "AUTO POSTO JARDIM ITALIA LTDA": {
+    cnpj: "04.079.097/0001-20",
+    endereco: "RUA PROFESSOR ADOLFO ARRUDA MELLO 770 – JARDIM ITALIA – ITAPETININGA/SP"
+  },
+  "POSTO DE SERVICO RIO BRANCO ITAPETININGA LTDA": {
+    cnpj: "08.982.262/0001-00",
+    endereco: "AVENIDA PADRE ANTONIO BRUNETTI 971 – VILA RIO BRANCO – ITAPETININGA/SP"
+  },
+  "AUTO POSTO KARZ LTDA": {
+    cnpj: "15.293.342/0001-14",
+    endereco: "RUA PADRE ALBUQUERQUE 197 – CENTRO – ITAPETININGA/SP"
+  },
+  "POSTO DE SERVICO SÂO JOSÉ DE ITAPETININGA LTDA": {
+    cnpj: "07.455.096/0001-21",
+    endereco: "RUA BARBOSA FRANCO 196 – CENTRO – ITAPETININGA/SP"
+  },
+  "POSTO DE ABASTECIMENTO VITORIA DE ITAPETININGA LTDA": {
+    cnpj: "13.560.758/0001-26",
+    endereco: "RUA JOSÉ DE ALMEIDA CARVALHO 1690 – CWEB – ITAPETININGA/SP"
+  },
+  "AUTO POSTO BENEDETTI SAO CARLOS LTDA": {
+    cnpj: "46.389.321/0001-20",
+    endereco: "RUA DOUTOR SERAFIM VIEIRA DE ALMEIDA 700 – JARDIM PARAISO – SÃO CARLOS/SP"
+  },
+  "POSTO DE ABASTECIMENTOS E SERVICO VITORIA LTDA": {
+    cnpj: "00.762.675/0001-78",
+    endereco: "RUA SÃO JOSÉ 677 – JARDIM ESPLANADA – CERQUILHO/SP"
+  },
+  "AUTO POSTO BENEDETTI DE BOTUCATU LTDA": {
+    cnpj: "32.548.118/0001-45",
+    endereco: "AVENIDA UNIVERSITARIA 1145 – JARDIM PLANALTO – BOTUCATU/SP"
+  },
+  "AUTO POSTO ALIANCA DE PORTO FELIZ LTDA": {
+    cnpj: "23.487.495/0001-20",
+    endereco: "AVENIDA GOVERNADOR MARIO COVAS 2010 – SANTA TEREZINHA – PORTO FELIZ/SP"
+  },
+  "AUTO POSTO RODOSALTO LTDA": {
+    cnpj: "64.956.352/0001-06",
+    endereco: "RUA RIO BRANCO 1720 – CHÁCARA VENDAMINI – SALTO/SP"
+  },
+  "POSTO DE ABASTECIMENTO ITUANO LTDA": {
+    cnpj: "13.081.001/0001-50",
+    endereco: "RUA JERONIMO GONÇALVES MEIRA 100 – VILA LEIS – ITU/SP"
+  },
+  "POSTO FELIX FAGUNDES POSTO AUTOMOTIVO LTDA": {
+    cnpj: "14.929.417/0001-48",
+    endereco: "RUA DR FELIX FAGUNDES 1330 – BOM SUCESSO – AVARÉ/SP"
+  },
+  "POSTO MAXXI GNV AUTO POSTO LTDA": {
+    cnpj: "04.802.366/0001-35",
+    endereco: "AVENIDA ALCINDO BARBOSA 1335 – PARQUE DA IMPRENSA – MOGI MIRIM/SP"
+  },
+  "POSTO DE ABASTECIMENTO HC LTDA": {
+    cnpj: "13.398.675/0001-82",
+    endereco: "HUMBERTO DE CAMPOS 639 – JARDIM ZULMIRA – SOROCABA/SP"
+  },
+  "AUTO POSTO BOA VISTA LTDA": {
+    cnpj: "10.961.566/0001-33",
+    endereco: "AV. ENGENHEIRO CARLOS REINALDO MENDES 2100 – ALEM PONTE – SOROCABA/SP"
+  },
+  "AUTO POSTO WANEL VILLE LTDA": {
+    cnpj: "04.771.286/0001-60",
+    endereco: "ELIAS MALUF 1675 – JARDIM SIMUS – SOROCABA/SP"
+  },
+  "POSTO DE ABAST.E TRANSP DE COMB VITORIA DE SOROCABA LTDA": {
+    cnpj: "65.788.713/0001-07",
+    endereco: "AVENIDA SÃO PAULO 380 – ALEM PONTE – SOROCABA/SP"
+  },
+  "POSTO DE SERVICOS RAFAELA LTDA": {
+    cnpj: "03.672.331/0001-66",
+    endereco: "AVENIDA DONA PAULA MORAES 100 – CENTRO – ITAPEVA/SP"
+  },
+  "AUTO POSTO SANTA CRUZ DE TATUÍ LTDA": {
+    cnpj: "03.557.364/0001-65",
+    endereco: "RUA MARIA MARCHESI DONATI 615 – ALTO DA STA CRUZ – TATUÍ/SP"
+  },
+  "AUTO POSTO BENEDETTI DE ITAPEVA LTDA": {
+    cnpj: "46.625.377/0001-37",
+    endereco: "AVENIDA DONA PAULINA DE MORAIS 1025 – JARDIM MARINGA – ITAPEVA/SP"
+  },
+  "POSTO DE SERVICO VOTORANTINENSE LTDA": {
+    cnpj: "03.280.329/0001-41",
+    endereco: "RUA LEVANTE SANTUCCI 258 – VILA UNIÃO – VOTORANTIM/SP"
+  },
+  "AUTO POSTO BENEDETTI DE PRESIDENTE PRUDENTE LTDA": {
+    cnpj: "34.735.895/0001-24",
+    endereco: "RODOVIA COMENDADOR ALBERTO BONFIGLIOLI 761 – JARDIM ITAIPU – PRESIDENTE PRUDENTE/SP"
+  },
+  "AUTO POSTO REGISTRO 2 LTDA": {
+    cnpj: "08.569.827/0001-22",
+    endereco: "RODOVIA REGIS BITENCOURT SN – CENTRO – REGISTRO/SP"
+  },
+  "SAO MIGUEL AUTO POSTO DE MARILIA LTDA": {
+    cnpj: "10.414.992/0001-57",
+    endereco: "RUA QUINZA DE NOVEMBRO 2255 – SOMENZARI – MARÍLIA/SP"
+  },
+  "AUTO POSTO BENEDETTI DE ARACATUBA LTDA": {
+    cnpj: "42.296.642/0001-20",
+    endereco: "RUA VEREADOR SILVA GROTA 115 – VILA MENDONCA – ARAÇATUBA/SP"
+  },
+  "DALLAS CENTRO DE ABASTECIMENTO DE COMBUSTIVEIS LTDA": {
+    cnpj: "09.183.706/0001-00",
+    endereco: "RUA CUSSY DE ALMEIDA JUNIOR 2350 – VILA CARVALHO – ARAÇATUBA/SP"
+  },
+  "AUTO POSTO BENEDETTI DE MARILIA LTDA": {
+    cnpj: "56.135.731/0001-07",
+    endereco: "AVENIDA JOÃO RAMALHO 2740 – MARÍLIA/SP"
+  },
+  "POSTO DE SERVICO VENEZA LTDA": {
+    cnpj: "05.317.515/0001-33",
+    endereco: "RUA JOÃO RAMALHO 30 – VILA ORESTES – ASSIS/SP"
+  },
+  "POSTO ESTACAO COMERCIO DE DERIVADOS DE PETROLEO EIRELI": {
+    cnpj: "29.667.355/0001-10",
+    endereco: "AVENIDA RODRIGUES ALVES QUADRA 2-12 – CENTRO – BAURU/SP"
+  },
+  "AUTO POSTO BENEDETTI DE BIRIGUI LTDA": {
+    cnpj: "50.610.749/0001-29",
+    endereco: "AVENIDA EUCLIDES MIRAGAIA 1678 – VILA PONTES – BIRIGUI/SP"
+  },
+  "POSTO GIGANTE DE OURINHOS LTDA": {
+    cnpj: "11.682.760/0001-42",
+    endereco: "RUA DOMINGOS CAMARINHA 100 – CENTRO - OURINHOS/SP"
+  }
+ };
+document.getElementById('posto').addEventListener('input', function() {
+  const nome = this.value;
+  const dados = postos[nome];
+  if (dados) {
+    document.getElementById('cnpjPosto').value = dados.cnpj;
+    document.getElementById('enderecoPosto').value = dados.endereco;
+  } else {
+    document.getElementById('cnpjPosto').value = '';
+    document.getElementById('enderecoPosto').value = '';
+  }
+});
+</script>
+
+<!-- Script para preencher e cadastrar distribuidores com localStorage -->
+<script>
+const fornecedores = JSON.parse(localStorage.getItem('fornecedores')) || {
+  "ALE Combustíveis S/A": "23.314.594/0009-68",
+  "RM Petróleo AS": "44.141.270/0010-8",
+  "Aster Petróleo Ltda": "02.377.759/0016-08",
+  "Biopetróleo do Brasil Dist. de Combustíveis Ltda": "13.485.658/0008-59",
+  "Rede Sol Fuel Distribuidora S.A": "29.134.440/0014-3",
+  "Fera Lubrificantes Ltda": "69.209.575/0003-87",
+  "Mar Azul Distribuidora de Combustíveis Ltda": "02.275.017/0006-91",
+  "All Distribuidora de Combustível EIRELI": "30.474.838/0001-88",
+  "Vetor Comércio de Combustíveis EIRELI": "04.677.033/0004-74",
+  "Everest Distribuidora de Combustíveis Ltda": "10.383.235/0003-25",
+  "Arka Distribuidora de Combustível EIRELI": "43.347.575/0002-79",
+  "Petroquality Dist. de Combustíveis Ltda": "07.243.624/0002-60",
+  "Duvale Distribuidora de Petróleo e Álcool Ltda": "58.823.121/0001-13",
+  "AGILE Logística e Distribuidora de Combustível": "10.911.906/0002-00"
+};
+
+function atualizarListaDistribuidores() {
+  const datalist = document.getElementById('fornecedores');
+  datalist.innerHTML = '';
+  for (const nome in fornecedores) {
+    const option = document.createElement('option');
+    option.value = nome;
+    datalist.appendChild(option);
+  }
+}
+
+document.getElementById('fornecedor').addEventListener('input', function () {
+  const nome = this.value;
+  const cnpj = fornecedores[nome];
+  document.getElementById('cnpjFornecedor').value = cnpj || '';
+});
+
+function cadastrarDistribuidor() {
+  const nome = document.getElementById('novoDistribuidor').value.trim();
+  const cnpj = document.getElementById('novoCNPJDistribuidor').value.trim();
+
+  if (!nome || !cnpj) {
+    alert('Preencha todos os campos!');
+    return;
+  }
+
+  if (fornecedores[nome]) {
+    alert('Esse distribuidor já está cadastrado.');
+    return;
+  }
+
+  fornecedores[nome] = cnpj;
+  localStorage.setItem('fornecedores', JSON.stringify(fornecedores));
+  atualizarListaDistribuidores();
+
+  alert('Distribuidor cadastrado com sucesso!');
+  document.getElementById('novoDistribuidor').value = '';
+  document.getElementById('novoCNPJDistribuidor').value = '';
+}
+
+atualizarListaDistribuidores();
+</script>
+
+<script>
+const transportadores = JSON.parse(localStorage.getItem('transportadores')) || {
+
+  "AUTO POSTO PORTAL DOS PASSAROS LTDA": "62.150.826/0001-94",
+  "AUTO POSTO A3 LTDA": "19.414.914/0001-27",
+  "AUTO POSTO ALIANÇA DE PORTO FELIZ LTDA": "23.487.495/0001-20",
+  "AUTO POSTO BENEDETTI DE PRESIDENTE PRUDENTE LTDA": "34.735.895/0001-24",
+  "AUTO POSTO BOA VISTA DE SOROCABA LTDA": "10.961.566/0001-33",
+  "AUTO POSTO DE ABASTECIMENTO E SERVIÇOS VITÓRIA LTDA": "00.762.675/0001-78",
+  "AUTO POSTO JARDIM ITÁLIA LTDA": "04.079.097/0001-20",
+  "AUTO POSTO REGISTRO II LTDA": "08.569.827/0001-22",
+  "AUTO POSTO BENEDETTI DE BIRIGUI LTDA": "50.610.749/0001-29",
+  "AUTO POSTO RODOSALTO LTDA": "64.956.352/0001-06",
+  "AUTO POSTO SANTA CRUZ DE TATUI LTDA": "03.557.364/0001-65",
+  "AUTO POSTO TRIÂNGULO DE PRESIDENTE PRUDENTE LTDA": "10.376.359/0002-00",
+  "AUTO POSTO WANEL VILLE LTDA": "04.771.286/0001-60",
+  "BENEDETTI TRANSPORTE DE PRODUTOS PERIGOSOS - EIRELI": "17.399.537/0001-79",
+  "FELIX FAGUNDES POSTO AUTOMOTIVO LTDA": "14.929.417/0001-48",
+  "AUTO POSTO BENEDETTI DE ARAÇATUBA LTDA": "42.296.642/0001-20",
+  "MAXXI GNV AUTO POSTO LTDA": "04.802.366/0001-35",
+  "POSTO DE ABAS. VIT.DE ITAPETININGA LTDA": "13.560.758/0001-26",
+  "POSTO DE ABAST E TRANSP COMB VITÓRIA DE SOROCABA": "65.788.713/0001-07",
+  "POSTO DE ABASTECIMENTO E SERVIÇOS VITÓRIA LTDA": "00.762.675/0001-78",
+  "POSTO DE ABASTECIMENTO E TRANSPORTE DE COMBUSTÍVEIS VITÓRIA SOROCABA LTDA": "65.788.713/0001-07",
+  "POSTO DE ABASTECIMENTO HC LTDA": "13.398.675/0001-82",
+  "POSTO DE ABASTECIMENTO ITUANO": "13.081.000/0001-50",
+  "POSTO DE SERVIÇO VENEZA LTDA": "05.317.515/0001-33",
+  "POSTO DE SERVIÇO VOTORANTINENSE LTDA": "03.280.329/0001-41",
+  "POSTO DE SERVIÇOS RAFAELA LTDA": "03.672.331/0001-66",
+  "POSTO DE SERVIÇOS RIO BRANCO ITAPETININGA LTDA": "08.982.262/0001-00",
+  "POSTO DE SERVIÇOS SÃO JOSÉ EM ITAPETININGA LTDA": "07.455.096/0001-21",
+  "POSTO GIGANTE DE OURINHOS LTDA": "11.682.760/0001-42",
+  "SÃO MIGUEL AUTO POSTO MARÍLIA LTDA": "10.414.992/0001-57",
+  "AUTO POSTO BENEDETTI DE SÃO JOSÉ DO RIO PRETO": "05.242.195/0001-08"
+};
+
+function atualizarListaTransportadores() {
+  const datalist = document.getElementById('transportadores');
+  datalist.innerHTML = '';
+  for (const nome in transportadores) {
+    const option = document.createElement('option');
+    option.value = nome;
+    datalist.appendChild(option);
+  }
+}
+
+document.getElementById('transportador').addEventListener('input', function () {
+  const nome = this.value;
+  const cnpj = transportadores[nome];
+  document.getElementById('cnpjTransportador').value = cnpj || '';
+});
+
+atualizarListaTransportadores();
+</script>
+<script>
+const motoristas = [
+  "DANIEL REGINALDO DE SOUZA",
+  "DEIVID PRESTES BENCK",
+  "EBERSON DE SOUZA RODRIGUES",
+  "EDGAR BATISTA PRESTES",
+  "EDIVALDO FRANÇA",
+  "ENÉIAS MARQUES BATISTA",
+  "FERNANDO FERREIRA CARRIEL",
+  "GILBERTO ANTUNES DE OLIVEIRA",
+  "JOREBE CASTANHO DE MORAES",
+  "JULIO BENEDITTO DE MELO MORAES",
+  "JULIO CESAR SIQUEIRA MACHADO",
+  "LEANDRO TOMÉ DE ALMEIDA",
+  "LUCAS FELIPE SANTOS SILVA",
+  "MARCO ANTONIO FERREIRA",
+  "MARCO ANTONIO FERREIRA F",
+  "MATHEUS FREITAS DE MELO",
+  "MAURICIO DOS SANTOS SOUZA",
+  "PAULO CESAR GOMES SOUTO",
+  "PAULO TOMÉ DE ALMEIDA",
+  "REINALDO ALESSANDRO DA CRUZ",
+  "ROBERTO BATISTA DE CARVALHO",
+  "ROBERVAL DUTRA LIMA",
+  "ROGERIO SIMOES LERIA",
+  "RONDINELI SIMON GALVÃO",
+  "ROQUE PAULO DO AMARAL JR",
+  "SERGIO GOMES DA SILVA",
+  "JOSÉ RICARDO QUEIROZ FIUZA",
+  "WAGNER RODRIGUES MACIEL",
+  "WAGNER JOSE DE MEDEIROS",
+  "ELIELSON JOSE DELGADO DOS SANTOS"
+];
+
+function atualizarListaMotoristas() {
+  const datalist = document.getElementById('motoristas');
+  datalist.innerHTML = '';
+  motoristas.forEach(nome => {
+    const option = document.createElement('option');
+    option.value = nome;
+    datalist.appendChild(option);
+  });
+}
+
+atualizarListaMotoristas();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  document.getElementById('btnPDF').addEventListener('click', () => {
+    const { jsPDF } = window.jspdf;
+    const doc    = new jsPDF();
+    const linha  = '------------------------------------------------------------';
+
+    // coleta de campos
+    const dataHora   = new Date().toLocaleString('pt-BR');
+    const tipo       = document.getElementById('tipo').value.toUpperCase() || '–';
+    const nf         = document.getElementById('nf').value || '–';
+    const amostra    = document.getElementById('amostra').value || '–';
+    const litros     = document.getElementById('litros').value || '–';
+    const distrib    = document.getElementById('fornecedor').value || '–';
+    const cnpjDist   = document.getElementById('cnpjFornecedor').value || '–';
+    const transp     = document.getElementById('transportador').value || '–';
+    const cnpjTransp = document.getElementById('cnpjTransportador').value || '–';
+    const motorista  = document.getElementById('motorista').value || '–';
+    const placa      = document.getElementById('placa').value || '–';
+    const posto      = document.getElementById('posto').value || '–';
+    const cnpjPosto  = document.getElementById('cnpjPosto').value || '–';
+    const endPosto   = document.getElementById('enderecoPosto').value || '–';
+    const respons    = document.getElementById('responsavel').value || '–';
+    const temp       = document.getElementById('temp').value || '–';
+    const dens       = document.getElementById('dens').value || '–';
+    const ph         = document.getElementById('ph')?.value || '–';
+    const percent    = document.getElementById('percent')?.value || '–';
+    const status     = document.getElementById('status').textContent || '–';
+    const infoText   = document.getElementById('dadosInfo').textContent;
+    const m          = infoText.match(/Teor:\s*(.+)$/m);
+    const teor       = m ? m[1] : '–';
+
+    // --- cabeçalho aprimorado ---
+    doc.setFont('Helvetica','bold');
+    doc.setFontSize(14);             // menor tamanho de fonte
+    doc.setTextColor('#0052cc');
+    doc.text('RELATÓRIO DE ANÁLISE DE COMBUSTÍVEL', 20, 20);
+    doc.setDrawColor(200);
+    doc.setLineWidth(0.5);
+    doc.line(20, 24, 190, 24);
+    let y = 30;                       // leve ajuste de espaçamento
+
+    // --- dados gerais em tabela manual ---
+    const startX1 = 20, startX2 = 80, rowH = 6;  // espaçamento reduzido
+    const dados = [
+      ['Data/Hora',   dataHora],
+      ['Tipo',        tipo],
+      ['Nota Fiscal', nf],
+      ['Amostra',     amostra],
+      ['Volume',      `${litros} L`]
+    ];
+    doc.setFont('Helvetica','normal');
+    doc.setFontSize(10);             // menor tamanho de fonte
+    dados.forEach(([label, valor], i) => {
+      const yPos = y + (i * rowH);
+      doc.text(label, startX1, yPos);
+      doc.text(valor, startX2, yPos);
+      doc.setDrawColor(220);
+      doc.setLineWidth(0.3);
+      doc.line(startX1, yPos + 1, 190, yPos + 1);
+    });
+    y += dados.length * rowH + 4;
+
+    // --- caixa de status evidenciada ---
+    const isOk = status.toUpperCase().includes('CONFORME');
+    doc.setFillColor(isOk ? '#D1FAE5' : '#FEE2E2');
+    doc.rect(startX1, y, 55, 6, 'F');             // caixa menor
+    doc.setFont('Helvetica','bold');
+    doc.setFontSize(9);              // fonte um pouco menor
+    doc.setTextColor('#1F2937');
+    doc.text(`Status: ${status}`, startX1 + 2, y + 5);
+    y += 9;
+
+    // --- transporte e distribuição ---
+    doc.setFont('Helvetica','normal'); doc.setFontSize(10); doc.setTextColor('#000');
+    doc.text(linha, 20, y); y += 6;
+    doc.text('TRANSPORTE E DISTRIBUIÇÃO', 20, y); y += 6;
+    doc.text(linha, 20, y); y += 8;
+    doc.text(`Distribuidor: ${distrib}`, 20, y); y += 6;
+    doc.text(`CNPJ: ${cnpjDist}`, 20, y); y += 6;
+    doc.text(`Transportador: ${transp}`, 20, y); y += 6;
+    doc.text(`CNPJ: ${cnpjTransp}`, 20, y); y += 6;
+    doc.text(`Motorista: ${motorista}`, 20, y); y += 6;
+    doc.text(`Placa: ${placa}`, 20, y); y += 8;
+
+    // --- posto revendedor ---
+    doc.text(linha, 20, y); y += 6;
+    doc.text('POSTO REVENDEDOR', 20, y); y += 6;
+    doc.text(linha, 20, y); y += 8;
+    doc.text(`Posto: ${posto}`, 20, y); y += 5;
+    doc.text(`CNPJ: ${cnpjPosto}`, 20, y); y += 5;
+    doc.text(`Endereço: ${endPosto}`, 20, y); y += 8;
+
+    // --- resultados de análise ---
+    doc.text(linha, 20, y); y += 6;
+    doc.setFont('Helvetica','bold'); doc.setFontSize(11);
+    doc.text('RESULTADOS DE ANÁLISE', 20, y); y += 6;
+    doc.setFont('Helvetica','normal'); doc.setFontSize(10);
+    doc.text(linha, 20, y); y += 8;
+    // tabela de características
+    doc.text('CARACTERÍSTICA', 20, y);
+    doc.text('Observada',     80, y);
+    doc.text('ESPECIFICAÇÃO', 140, y);
+    y += 6;
+    doc.text('Cor',        20, y);
+    doc.text('VISUAL',     80, y);
+    doc.text('INCOLOR',    140, y);
+    y += 6;
+    doc.text('Aspecto',    20, y);
+    doc.text('VISUAL',     80, y);
+    doc.text('LII (1)',    140, y);
+    y += 8;
+    // continua com resultados originais
+    doc.text(`Temperatura: ${temp} °C`, 20, y); y += 6;
+    doc.text(`Densidade: ${dens} g/cm³`, 20, y); y += 6;
+    if (tipo === 'ETANOL') {
+      doc.text(`pH: ${ph}`, 20, y); y += 6;
+      doc.text(`Teor: ${teor}`, 20, y); y += 6;
+    } else {
+      doc.text(`% Etanol: ${percent} %`, 20, y); y += 6;
+      doc.text(`Teor: ${teor}`, 20, y); y += 6;
+    }
+
+    // --- observações e assinatura ---
+    y += 2;
+    doc.text(linha, 20, y); y += 6;
+    doc.text('Obs.: Todos os parâmetros conforme ANP.', 20, y); y += 6;
+    doc.text('Produto liberado para comercialização.', 20, y); y += 8;
+    doc.text(`Responsável pela coleta: ${respons}`, 20, y); y += 6;
+    doc.text('Assinatura: _________________________________________________', 20, y);
+
+    // --- rodapé ---
+    doc.setFont('Helvetica','normal'); doc.setFontSize(7); doc.setTextColor('#6B7280');
+    const dataHoje = dataHora.split(' ')[0];
+    doc.text(`Página 1 de 1 | Gerado por Sistema Rede Benedetti | ${dataHoje}`, 20, 287);
+
+    // salva o PDF
+     doc.save(`analise_${tipo.toLowerCase()}_${nf}.pdf`);
+  });
+</script>
+
 
 </body>
 </html>
