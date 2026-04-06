@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Análise de Combustível – Rede Benedetti</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:#0f1115; color:#e5e5e5; font-family:'Inter', sans-serif; padding:1rem; }
+    .container { max-width:600px; margin:auto; background:#1f2937; padding:1.5rem; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.6); }
+    .header { display:flex; align-items:center; margin-bottom:1.5rem; }
+    .logo { width:48px; height:48px; background:#FFD700; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.8rem; font-weight:bold; color:#1f2937; margin-right:0.75rem; }
+    .header h1 { font-size:1.4rem; color:#FFD700; }
+    .field { margin-bottom:1rem; position: relative; }
+    .field label { display:block; margin-bottom:0.25rem; color:#cbd5e1; font-size:0.9rem; }
+    .field label .required { color: #E53E3E; }
+    .field input, .field select { width:100%; padding:0.5rem; border:none; border-radius:6px; background:#374151; color:#e5e5e5; font-size:1rem; }
+    .field input:focus { outline:2px solid #10B981; }
+    .field input:read-only { background: #1f2937; color: #9CA3AF; }
+    .loading { position: absolute; right: 10px; top: 35px; color: #10B981; font-size: 0.8rem; display: none; }
+    .success { color: #10B981; font-size: 0.8rem; margin-top: 0.25rem; display: none; }
+    .error { color: #E53E3E; font-size: 0.8rem; margin-top: 0.25rem; display: none; }
+    button { width:100%; padding:0.75rem; background:#10B981; border:none; border-radius:6px; color:#fff; font-weight:600; font-size:1rem; cursor:pointer; transition:background 0.2s; }
+    button:hover { background:#0fa76b; }
+    .btn-secondary { background:#3B82F6; margin-top:0.5rem; }
+    .btn-secondary:hover { background:#2563EB; }
+    .btn-small { width: auto; padding: 0.5rem 1rem; font-size: 0.9rem; }
+    .result { display:none; margin-top:1.5rem; background:#111827; padding:1rem; border-radius:8px; }
+    .status { display:inline-block; padding:0.25rem 0.75rem; border-radius:4px; font-weight:600; margin-bottom:0.75rem; }
+    .ok { background:#10B981; }
+    .fail { background:#E53E3E; }
+    .divider { height:1px; background:#374151; margin:1rem 0; }
+    .section-title { font-size:1.1rem; margin-bottom:0.5rem; color:#fff; }
+    .item { margin:0.3rem 0; font-size:0.95rem; }
+    .search-box { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+    .search-box input { flex: 1; }
+    .search-box button { width: auto; padding: 0.5rem 1rem; }
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid #374151; padding-bottom: 0.5rem; }
+    .tab { padding: 0.5rem 1rem; cursor: pointer; border-radius: 4px; transition: background 0.2s; }
+    .tab.active { background: #374151; color: #FFD700; }
+    .tab:hover:not(.active) { background: #374151; }
+    .hidden { display: none !important; }
+    .info-text { font-size: 0.85rem; color: #9CA3AF; margin-top: 0.25rem; }
+    .highlight { color: #FFD700; font-weight: bold; }
+    
+    /* NOVO: Estilos para o autocomplete de motoristas */
+    .autocomplete-container { position: relative; }
+    .autocomplete-list {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #374151;
+      border: 1px solid #4B5563;
+      border-radius: 0 0 6px 6px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    .autocomplete-item {
+      padding: 0.75rem;
+      cursor: pointer;
+      border-bottom: 1px solid #4B5563;
+      transition: background 0.2s;
+    }
+    .autocomplete-item:hover, .autocomplete-item.selected {
+      background: #10B981;
+      color: #fff;
+    }
+    .autocomplete-item:last-child { border-bottom: none; }
+    .no-results {
+      padding: 0.75rem;
+      color: #9CA3AF;
+      font-style: italic;
+    }
+    .clear-btn {
+      position: absolute;
+      right: 10px;
+      top: 35px;
+      background: none;
+      border: none;
+      color: #9CA3AF;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: none;
+      width: auto;
+      padding: 0;
+    }
+    .clear-btn:hover { color: #E53E3E; }
+  </style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<div class="logo">B</div>
+<h1>REDE BENEDETTI</h1>
+</div>
+
+<!-- Abas para facilitar navegação -->
+<div class="tabs">
+  <div class="tab active" onclick="showTab('analise')">Análise</div>
+  <div class="tab" onclick="showTab('cadastros')">Cadastros Rápidos</div>
+</div>
+
+<!-- ABA: ANÁLISE -->
+<div id="tab-analise">
+  <!-- Campos Gerais -->
+  <div class="field">
+    <label>Nota Fiscal <span class="required">*</span></label>
+    <input id="nf" placeholder="Nº da nota fiscal" required/>
+  </div>
+  
+  <div class="field">
+    <label>Data de Recebimento <span class="required">*</span></label>
+    <input id="dataRecebimento" type="date" required/>
+  </div>
+  
+  <div class="field">
+    <label>Amostra/Identificação <span class="required">*</span></label>
+    <input id="amostra" placeholder="Identificação da amostra" required/>
+  </div>
+  
+  <!-- DISTRIBUIDOR COM BUSCA POR CNPJ -->
+  <div class="field">
+    <label>CNPJ do Distribuidor <span class="required">*</span></label>
+    <div class="search-box">
+      <input id="cnpjDistribuidorInput" placeholder="00.000.000/0000-00" maxlength="18" required/>
+      <button type="button" onclick="buscarCNPJ('distribuidor')" class="btn-secondary btn-small">Buscar</button>
+    </div>
+    <span class="loading" id="loading-distribuidor">Buscando...</span>
+    <span class="success" id="success-distribuidor">✓ Dados encontrados</span>
+    <span class="error" id="error-distribuidor">CNPJ não encontrado</span>
+  </div>
+  
+  <div class="field">
+    <label>Razão Social do Distribuidor <span class="required">*</span></label>
+    <input id="fornecedor" readonly placeholder="Preencha o CNPJ e clique em Buscar" required/>
+  </div>
+
+  <div class="field">
+    <label>Litragem/Volume (L) <span class="required">*</span></label>
+    <input id="litros" placeholder="Litros recebidos" step="0.1" type="number" required/>
+  </div>
+
+  <!-- TRANSPORTADOR COM BUSCA POR CNPJ -->
+  <div class="field">
+    <label>CNPJ do Transportador <span class="required">*</span></label>
+    <div class="search-box">
+      <input id="cnpjTransportadorInput" placeholder="00.000.000/0000-00" maxlength="18" required/>
+      <button type="button" onclick="buscarCNPJ('transportador')" class="btn-secondary btn-small">Buscar</button>
+    </div>
+    <span class="loading" id="loading-transportador">Buscando...</span>
+    <span class="success" id="success-transportador">✓ Dados encontrados</span>
+    <span class="error" id="error-transportador">CNPJ não encontrado</span>
+  </div>
+  
+  <div class="field">
+    <label>Razão Social do Transportador <span class="required">*</span></label>
+    <input id="transportador" readonly placeholder="Preencha o CNPJ e clique em Buscar" required/>
+  </div>
+
+  <!-- MOTORISTA COM AUTOCOMPLETE INTELIGENTE -->
+  <div class="field autocomplete-container">
+    <label>Nome do Motorista <span class="required">*</span></label>
+    <input id="motorista" placeholder="Digite algumas letras do nome..." autocomplete="off" required/>
+    <button type="button" class="clear-btn" onclick="limparMotorista()" title="Limpar">×</button>
+    <div id="autocompleteList" class="autocomplete-list"></div>
+    <div class="info-text">Digite 2 ou mais letras para buscar (ex: "SILVA" encontra "JOSE DA SILVA")</div>
+  </div>
+
+  <div class="field">
+    <label>Placa do Caminhão-Tanque <span class="required">*</span></label>
+    <input type="text" id="placa" placeholder="ABC-1234 ou ABC1D23" maxlength="8" required/>
+  </div>
+  
+  <div class="field">
+    <label>Nº do Lacre do Compartimento <span class="required">*</span></label>
+    <input id="lacre" placeholder="Número do lacre ANP" required/>
+    <div class="info-text">O lacre deve estar intacto conforme Resolução ANP nº 9/2007</div>
+  </div>
+
+  <!-- POSTO COM BUSCA POR CNPJ -->
+  <div class="field">
+    <label>CNPJ do Posto Revendedor <span class="required">*</span></label>
+    <div class="search-box">
+      <input id="cnpjPostoInput" placeholder="00.000.000/0000-00" maxlength="18" required/>
+      <button type="button" onclick="buscarCNPJ('posto')" class="btn-secondary btn-small">Buscar</button>
+    </div>
+    <span class="loading" id="loading-posto">Buscando...</span>
+    <span class="success" id="success-posto">✓ Dados encontrados</span>
+    <span class="error" id="error-posto">CNPJ não encontrado</span>
+  </div>
+  
+  <div class="field">
+    <label>Razão Social do Posto <span class="required">*</span></label>
+    <input id="posto" readonly placeholder="Preencha o CNPJ e clique em Buscar" required/>
+  </div>
+  
+  <div class="field">
+    <label>Endereço do Posto</label>
+    <input id="enderecoPosto" readonly placeholder="Será preenchido automaticamente"/>
+  </div>
+  
+  <div class="field">
+    <label>Responsável pelo Recebimento <span class="required">*</span></label>
+    <select id="responsavel" required>
+      <option value="">-- Selecione o responsável --</option>
+    </select>
+  </div>
+
+  <!-- Tipo de combustível -->
+  <div class="field">
+    <label>Tipo de Combustível <span class="required">*</span></label>
+    <select id="tipo" required>
+      <option value="">-- selecione --</option>
+      <option value="gasolina">Gasolina C Comum </option>
+      <option value="etanol">Etanol Hidratado Combustível </option>
+      <option value="diesel">Óleo Diesel S10</option>
+    </select>
+  </div>
+  
+  <!-- Campos adicionais específicos -->
+  <div class="field" id="field-percent" style="display:none;">
+    <label>Teor de Etanol Anidro (% m/m) <span class="required">*</span></label>
+    <input id="percent" max="100" min="0" step="0.1" type="number"/>
+    <div class="info-text">
+      <span class="highlight">Especificação atual: 18% a 30%</span> (Resolução ANP vigente)<br>
+      <small>Gasolina C comum: até 27% | Gasolina C aditivada: até 30%</small>
+    </div>
+  </div>
+  
+  <div class="field" id="field-ph" style="display:none;">
+    <label>pH (Etanol) <span class="required">*</span></label>
+    <input id="ph" max="14" min="0" step="0.1" type="number"/>
+    <div class="info-text">Especificação: 6,0 a 8,0 (Resolução ANP nº 1.075/2021)</div>
+  </div>
+  
+  <!-- Medidas -->
+  <div class="field">
+    <label>Temperatura da Amostra (°C) <span class="required">*</span></label>
+    <input id="temp" max="40" min="15" step="0.5" type="number" required/>
+  </div>
+  
+  <div class="field">
+    <label>Massa Específica/Densidade (g/cm³) <span class="required">*</span></label>
+    <input id="dens" step="0.0001" type="number" required/>
+  </div>
+  
+  <!-- Aspecto e Cor (ANP) -->
+  <div class="field">
+    <label>Aspecto Visual <span class="required">*</span></label>
+    <select id="aspecto" required>
+      <option value="">-- selecione --</option>
+      <option value="I">I - Límpido e isento de impurezas</option>
+      <option value="II">II - Límpido e com impureza</option>
+      <option value="III">III - Turvo e isento de impurezas</option>
+      <option value="IV">IV - Turvo e com impurezas</option>
+    </select>
+  </div>
+  
+  <div class="field">
+    <label>Cor Visual <span class="required">*</span></label>
+    <input id="cor" placeholder="Ex: Incolor, Amarelo, Laranja" required/>
+  </div>
+  
+  <button id="btnCalcular">Analisar Conformidade ANP</button>
+  
+  <!-- Resultado -->
+  <div class="result" id="resultado">
+    <div class="status" id="status"></div>
+    <div class="divider"></div>
+    <div><div class="section-title">Dados do Recebimento</div><div id="dadosInfo"></div></div>
+    <div class="divider"></div>
+    <div><div class="section-title">Referências ANP</div><div id="dadosRef"></div></div>
+  </div>
+  
+  <button id="btnWhatsapp" style="display:none;margin-top:20px;background:#25D366;color:#fff;padding:1rem 2rem;font-size:1.2rem;">Compartilhar no WhatsApp</button> 
+  <button id="btnPDF" style="width:100%; padding:0.75rem; background:#2563EB; color:#fff; border:none; border-radius:6px; font-weight:600; font-size:1rem; margin-top:1rem; cursor:pointer; display:none;">Gerar Laudo ANP (PDF)</button>
+</div>
+
+<!-- ABA: CADASTROS RÁPIDOS -->
+<div id="tab-cadastros" class="hidden">
+  <h3 style="color: #FFD700; margin-bottom: 1rem;">Cadastro de Motoristas</h3>
+  <div class="field">
+    <label>Nome Completo do Motorista</label>
+    <input id="novoNomeMotorista" placeholder="Nome completo"/>
+  </div>
+  <button onclick="cadastrarMotorista()" style="margin-bottom: 2rem;">Cadastrar Motorista</button>
+
+  <h3 style="color: #FFD700; margin-bottom: 1rem;">Motoristas Cadastrados</h3>
+  <div id="listaMotoristasCadastrados" style="background: #111827; padding: 1rem; border-radius: 8px; max-height: 300px; overflow-y: auto;">
+    <!-- Lista será preenchida via JS -->
+  </div>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+// ==========================================
+// BASE DE DADOS E CONFIGURAÇÕES
+// ==========================================
+
+// Tabela de densidade ANP (Resolução nº 9/2007)
+const densRef = {
+  gasolina: {15:{min:0.7241,max:0.7638},15.5:{min:0.7237,max:0.7635},16:{min:0.7233,max:0.7631},16.5:{min:0.7229,max:0.7627},17:{min:0.7225,max:0.7623},17.5:{min:0.7221,max:0.7619},18:{min:0.7217,max:0.7615},18.5:{min:0.7212,max:0.7612},19:{min:0.7208,max:0.7608},19.5:{min:0.7204,max:0.7604},20:{min:0.7200,max:0.7600},20.5:{min:0.7196,max:0.7596},21:{min:0.7192,max:0.7592},21.5:{min:0.7188,max:0.7589},22:{min:0.7183,max:0.7585},22.5:{min:0.7179,max:0.7581},23:{min:0.7175,max:0.7577},23.5:{min:0.7171,max:0.7573},24:{min:0.7167,max:0.7569},24.5:{min:0.7163,max:0.7565},25:{min:0.7159,max:0.7562},25.5:{min:0.7154,max:0.7558},26:{min:0.7150,max:0.7554},26.5:{min:0.7146,max:0.7550},27:{min:0.7142,max:0.7546},27.5:{min:0.7138,max:0.7543},28:{min:0.7134,max:0.7539},28.5:{min:0.7130,max:0.7535},29:{min:0.7125,max:0.7527},29.5:{min:0.7121,max:0.7523},30:{min:0.7117,max:0.7523},30.5:{min:0.7113,max:0.7519},31:{min:0.7109,max:0.7516},31.5:{min:0.7105,max:0.7512},32:{min:0.7100,max:0.7508},32.5:{min:0.7096,max:0.7504},33:{min:0.7092,max:0.7500},33.5:{min:0.7088,max:0.7497},34:{min:0.7084,max:0.7493},34.5:{min:0.7080,max:0.7489},35:{min:0.7075,max:0.7480},35.5:{min:0.7071,max:0.7477},36:{min:0.7067,max:0.7473},36.5:{min:0.7063,max:0.7468},37:{min:0.7059,max:0.7464},37.5:{min:0.7055,max:0.7460},38:{min:0.7051,max:0.7458},38.5:{min:0.7046,max:0.7455},39:{min:0.7042,max:0.7450},39.5:{min:0.7038,max:0.7446},40:{min:0.7034,max:0.7446}},
+  etanol: {15:{min:0.8117,max:0.8150},15.5:{min:0.8113,max:0.8147},16:{min:0.8110,max:0.8143},16.5:{min:0.8105,max:0.8138},17:{min:0.8100,max:0.8135},17.5:{min:0.8095,max:0.8130},18:{min:0.8092,max:0.8125},18.5:{min:0.8088,max:0.8122},19:{min:0.8085,max:0.8118},19.5:{min:0.8080,max:0.8113},20:{min:0.8075,max:0.8110},20.5:{min:0.8070,max:0.8105},21:{min:0.8067,max:0.8100},21.5:{min:0.8062,max:0.8097},22:{min:0.8058,max:0.8092},22.5:{min:0.8055,max:0.8087},23:{min:0.8050,max:0.8083},23.5:{min:0.8045,max:0.8080},24:{min:0.8042,max:0.8075},24.5:{min:0.8038,max:0.8070},25:{min:0.8033,max:0.8067},25.5:{min:0.8030,max:0.8063},26:{min:0.8025,max:0.8058},26.5:{min:0.8020,max:0.8055},27:{min:0.8015,max:0.8050},27.5:{min:0.8012,max:0.8045},28:{min:0.8007,max:0.8040},28.5:{min:0.8005,max:0.8037},29:{min:0.8000,max:0.8033},29.5:{min:0.7995,max:0.8028},30:{min:0.7990,max:0.8023},30.5:{min:0.7987,max:0.8020},31:{min:0.7982,max:0.8015},31.5:{min:0.7977,max:0.8010},32:{min:0.7972,max:0.8007},32.5:{min:0.7968,max:0.8003},33:{min:0.7965,max:0.7998},33.5:{min:0.7960,max:0.7993},34:{min:0.7955,max:0.7988},34.5:{min:0.7952,max:0.7985},35:{min:0.7947,max:0.7980},35.5:{min:0.7943,max:0.7975},36:{min:0.7940,max:0.7973},36.5:{min:0.7935,max:0.7968},37:{min:0.7930,max:0.7963},37.5:{min:0.7925,max:0.7958},38:{min:0.7920,max:0.7950},38.5:{min:0.7917,max:0.7945},39:{min:0.7913,max:0.7940},39.5:{min:0.7908,max:0.7937},40:{min:0.7905,max:0.7937}},
+  diesel: {15:{min:0.8234,max:0.8832},15.5:{min:0.8231,max:0.8827},16:{min:0.8227,max:0.8826},16.5:{min:0.8224,max:0.8823},17:{min:0.8221,max:0.8819},17.5:{min:0.8217,max:0.8813},18:{min:0.8214,max:0.8810},18.5:{min:0.8210,max:0.8807},19:{min:0.8207,max:0.8804},19.5:{min:0.8204,max:0.8800},20:{min:0.8200,max:0.8797},20.5:{min:0.8197,max:0.8794},21:{min:0.8193,max:0.8790},21.5:{min:0.8188,max:0.8785},22:{min:0.8183,max:0.8781},22.5:{min:0.8176,max:0.8778},23:{min:0.8173,max:0.8775},23.5:{min:0.8169,max:0.8771},24:{min:0.8166,max:0.8768},24.5:{min:0.8163,max:0.8765},25:{min:0.8160,max:0.8762},25.5:{min:0.8157,max:0.8759},26:{min:0.8153,max:0.8756},26.5:{min:0.8149,max:0.8753},27:{min:0.8145,max:0.8749},27.5:{min:0.8141,max:0.8746},28:{min:0.8138,max:0.8743},28.5:{min:0.8134,max:0.8739},29:{min:0.8130,max:0.8736},29.5:{min:0.8127,max:0.8733},30:{min:0.8123,max:0.8730},30.5:{min:0.8119,max:0.8727},31:{min:0.8116,max:0.8724},31.5:{min:0.8112,max:0.8721},32:{min:0.8108,max:0.8718},32.5:{min:0.8105,max:0.8715},33:{min:0.8101,max:0.8712},33.5:{min:0.8097,max:0.8709},34:{min:0.8093,max:0.8706},34.5:{min:0.8090,max:0.8703},35:{min:0.8086,max:0.8699},35.5:{min:0.8082,max:0.8696},36:{min:0.8078,max:0.8693},36.5:{min:0.8075,max:0.8690},37:{min:0.8071,max:0.8687},37.5:{min:0.8067,max:0.8684},38:{min:0.8064,max:0.8681},38.5:{min:0.8060,max:0.8678},39:{min:0.8056,max:0.8675},39.5:{min:0.8053,max:0.8672},40:{min:0.8049,max:0.8669}}
+};
+
+// Motoristas iniciais (apenas nomes, sem CPF)
+const motoristasIniciais = [
+  "DANIEL REGINALDO DE SOUZA",
+  "ANDRE LUIZ DAS CHAGAS",
+  "ANDRE LUIS PIRES DE ANDRADE",
+  "ALESSANDRO QUERINO VIEIRA",
+  "EBERSON DE SOUZA RODRIGUES",
+  "EDGAR BATISTA PRESTES",
+  "EDIVALDO FRANÇA",
+  "ENÉIAS MARQUES BATISTA",
+  "ARCHIMEDES FIL JUNIOR",
+  "ALTAIR DE BRITO",
+  "RICARDO RODRIGUES DE ALMEIDA",
+  "JULIO BENEDITTO DE MELO MORAES",
+  "JULIO CESAR SIQUEIRA MACHADO",
+  "LEANDRO TOMÉ DE ALMEIDA",
+  "LUCAS FELIPE SANTOS SILVA",
+  "MARCO ANTONIO FERREIRA",
+  "SIDCLEY FERNANDO LEITE DA SILVA",
+  "MATHEUS FREITAS DE MELO",
+  "MAURICIO DOS SANTOS SOUZA",
+  "PAULO CESAR GOMES SOUTO",
+  "PAULO TOMÉ DE ALMEIDA",
+  "REINALDO ALESSANDRO DA CRUZ",
+  "ROBERTO BATISTA DE CARVALHO",
+  "ROBERVAL DUTRA LIMA",
+  "RODRIGO RODRIGUES CLETO",
+  "ROGERIO SIMOES LERIA",
+  "RONDINELI SIMON GALVÃO",
+  "ROQUE PAULO DO AMARAL JR",
+  "MARCELO ROCHA",
+  "JOSÉ RICARDO QUEIROZ FIUZA",
+  "WAGNER RODRIGUES MACIEL",
+  "WAGNER JOSE DE MEDEIROS",
+  "ELIELSON JOSE DELGADO DOS SANTOS"
+];
+
+// Responsáveis padrão
+const responsaveisPadrao = [
+  "GERENTE DE POSTO",
+  "SUPERVISOR DE OPERAÇÕES",
+  "COORDENADOR LOGÍSTICO",
+  "ANALISTA DE QUALIDADE",
+  "FISCAL DE RECEBIMENTO"
+];
+
+// Inicialização
+let motoristas = JSON.parse(localStorage.getItem('motoristasBenedetti')) || motoristasIniciais;
+let selectedIndex = -1;
+
+// ==========================================
+// SISTEMA DE AUTOCOMPLETE PARA MOTORISTAS
+// ==========================================
+
+const motoristaInput = document.getElementById('motorista');
+const autocompleteList = document.getElementById('autocompleteList');
+const clearBtn = document.querySelector('.clear-btn');
+
+function initAutocomplete() {
+  // Evento de input (digitação)
+  motoristaInput.addEventListener('input', function(e) {
+    const value = e.target.value.toUpperCase().trim();
+    
+    // Mostrar/esconder botão de limpar
+    clearBtn.style.display = value.length > 0 ? 'block' : 'none';
+    
+    // Se tiver menos de 2 caracteres, não busca
+    if (value.length < 2) {
+      closeAutocomplete();
+      return;
+    }
+    
+    // Filtrar motoristas que CONTENHAM as letras digitadas (em qualquer parte do nome)
+    const matches = motoristas.filter(nome => nome.includes(value));
+    
+    showAutocomplete(matches, value);
+  });
+  
+  // Eventos de teclado (setas e enter)
+  motoristaInput.addEventListener('keydown', function(e) {
+    const items = autocompleteList.querySelectorAll('.autocomplete-item');
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIndex = (selectedIndex + 1) % items.length;
+      updateSelection(items);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+      updateSelection(items);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (selectedIndex >= 0 && items[selectedIndex]) {
+        selectMotorista(items[selectedIndex].textContent);
+      }
+    } else if (e.key === 'Escape') {
+      closeAutocomplete();
+    }
+  });
+  
+  // Fechar ao clicar fora
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.autocomplete-container')) {
+      closeAutocomplete();
+    }
+  });
+  
+  // Focus no input mostra todas opções se estiver vazio
+  motoristaInput.addEventListener('focus', function() {
+    if (this.value.trim().length === 0 && motoristas.length > 0) {
+      showAutocomplete(motoristas.slice(0, 10), ''); // Mostra os 10 primeiros
+    }
+  });
+}
+
+function showAutocomplete(matches, searchTerm) {
+  if (matches.length === 0) {
+    autocompleteList.innerHTML = '<div class="no-results">Nenhum motorista encontrado. Cadastre na aba "Cadastros Rápidos"</div>';
+    autocompleteList.style.display = 'block';
+    return;
+  }
+  
+  // Limitar a 10 resultados para não poluir a tela
+  const displayMatches = matches.slice(0, 10);
+  
+  autocompleteList.innerHTML = displayMatches.map((nome, index) => {
+    // Destacar a parte que bateu com a busca
+    let displayName = nome;
+    if (searchTerm) {
+      const regex = new RegExp(`(${searchTerm})`, 'gi');
+      displayName = nome.replace(regex, '<span style="background: #FFD700; color: #1f2937; font-weight: bold;">$1</span>');
+    }
+    
+    return `<div class="autocomplete-item" data-index="${index}" onclick="selectMotorista('${nome}')">${displayName}</div>`;
+  }).join('');
+  
+  autocompleteList.style.display = 'block';
+  selectedIndex = -1;
+}
+
+function updateSelection(items) {
+  items.forEach((item, index) => {
+    if (index === selectedIndex) {
+      item.classList.add('selected');
+      item.scrollIntoView({ block: 'nearest' });
+    } else {
+      item.classList.remove('selected');
+    }
+  });
+}
+
+function selectMotorista(nome) {
+  motoristaInput.value = nome;
+  closeAutocomplete();
+  clearBtn.style.display = 'block';
+}
+
+function closeAutocomplete() {
+  autocompleteList.style.display = 'none';
+  selectedIndex = -1;
+}
+
+function limparMotorista() {
+  motoristaInput.value = '';
+  clearBtn.style.display = 'none';
+  closeAutocomplete();
+  motoristaInput.focus();
+}
+
+// ==========================================
+// FUNÇÕES DE FORMATAÇÃO E UTILIDADE
+// ==========================================
+
+function formatarCNPJ(input) {
+  let value = input.value.replace(/\D/g, '');
+  if (value.length <= 14) {
+    value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+    value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+    value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+    value = value.replace(/(\d{4})(\d)/, '$1-$2');
+  }
+  input.value = value;
+}
+
+function limparCNPJ(cnpj) {
+  return cnpj.replace(/[^\d]/g, '');
+}
+
+function validarCNPJ(cnpj) {
+  cnpj = cnpj.replace(/[^\d]+/g,'');
+  if(cnpj == '') return false;
+  if (cnpj.length != 14) return false;
+  
+  // Elimina CNPJs invalidos conhecidos
+  if (cnpj == "00000000000000" || 
+      cnpj == "11111111111111" || 
+      cnpj == "22222222222222" || 
+      cnpj == "33333333333333" || 
+      cnpj == "44444444444444" || 
+      cnpj == "55555555555555" || 
+      cnpj == "66666666666666" || 
+      cnpj == "77777777777777" || 
+      cnpj == "88888888888888" || 
+      cnpj == "99999999999999")
+      return false;
+      
+  // Valida DVs
+  let tamanho = cnpj.length - 2;
+  let numeros = cnpj.substring(0,tamanho);
+  let digitos = cnpj.substring(tamanho);
+  let soma = 0;
+  let pos = tamanho - 7;
+  for (let i = tamanho; i >= 1; i--) {
+    soma += numeros.charAt(tamanho - i) * pos--;
+    if (pos < 2) pos = 9;
+  }
+  let resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+  if (resultado != digitos.charAt(0)) return false;
+  
+  tamanho = tamanho + 1;
+  numeros = cnpj.substring(0,tamanho);
+  soma = 0;
+  pos = tamanho - 7;
+  for (let i = tamanho; i >= 1; i--) {
+    soma += numeros.charAt(tamanho - i) * pos--;
+    if (pos < 2) pos = 9;
+  }
+  resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+  if (resultado != digitos.charAt(1)) return false;
+  
+  return true;
+}
+
+// ==========================================
+// API OPEN CNPJ (GRATUITA E ILIMITADA)
+// ==========================================
+
+async function buscarCNPJ(tipo) {
+  const config = {
+    distribuidor: {
+      inputId: 'cnpjDistribuidorInput',
+      nomeId: 'fornecedor',
+      loadingId: 'loading-distribuidor',
+      successId: 'success-distribuidor',
+      errorId: 'error-distribuidor'
+    },
+    transportador: {
+      inputId: 'cnpjTransportadorInput',
+      nomeId: 'transportador',
+      loadingId: 'loading-transportador',
+      successId: 'success-transportador',
+      errorId: 'error-transportador'
+    },
+    posto: {
+      inputId: 'cnpjPostoInput',
+      nomeId: 'posto',
+      enderecoId: 'enderecoPosto',
+      loadingId: 'loading-posto',
+      successId: 'success-posto',
+      errorId: 'error-posto'
+    }
+  };
+
+  const cfg = config[tipo];
+  const cnpj = limparCNPJ(document.getElementById(cfg.inputId).value);
+  
+  if (!validarCNPJ(cnpj)) {
+    alert('CNPJ inválido! Verifique os dígitos.');
+    return;
+  }
+  
+  // Mostrar loading
+  document.getElementById(cfg.loadingId).style.display = 'inline';
+  document.getElementById(cfg.successId).style.display = 'none';
+  document.getElementById(cfg.errorId).style.display = 'none';
+  
+  try {
+    // Usando OpenCNPJ - API pública e gratuita
+    const response = await fetch(`https://open.cnpja.com/office/${cnpj}`);
+    
+    if (!response.ok) throw new Error('CNPJ não encontrado');
+    
+    const data = await response.json();
+    
+    // Preencher campos
+    document.getElementById(cfg.nomeId).value = data.company.name || data.alias || 'Nome não disponível';
+    
+    // Se tiver campo de endereço (apenas para posto)
+    if (cfg.enderecoId && data.address) {
+      const end = data.address;
+      const endereco = `${end.street || ''}, ${end.number || ''} - ${end.city || ''}/${end.state || ''} - CEP: ${end.zip || ''}`;
+      document.getElementById(cfg.enderecoId).value = endereco;
+    }
+    
+    // Salvar no histórico
+    salvarHistorico(tipo, cnpj, data.company.name);
+    
+    document.getElementById(cfg.successId).style.display = 'inline';
+    
+  } catch (error) {
+    console.error('Erro na consulta:', error);
+    document.getElementById(cfg.errorId).style.display = 'inline';
+    alert('Não foi possível encontrar o CNPJ. Verifique se está correto ou preencha manualmente.');
+  } finally {
+    document.getElementById(cfg.loadingId).style.display = 'none';
+  }
+}
+
+function salvarHistorico(tipo, cnpj, nome) {
+  const key = `${tipo}Historico`;
+  let hist = JSON.parse(localStorage.getItem(key)) || {};
+  hist[cnpj] = nome;
+  localStorage.setItem(key, JSON.stringify(hist));
+}
+
+// ==========================================
+// SISTEMA DE MOTORISTAS (CADASTRO)
+// ==========================================
+
+function cadastrarMotorista() {
+  const nome = document.getElementById('novoNomeMotorista').value.toUpperCase().trim();
+  
+  if (!nome) {
+    alert('Digite o nome do motorista!');
+    return;
+  }
+  
+  if (motoristas.includes(nome)) {
+    alert('Motorista já cadastrado!');
+    return;
+  }
+  
+  motoristas.push(nome);
+  localStorage.setItem('motoristasBenedetti', JSON.stringify(motoristas));
+  
+  alert('Motorista cadastrado com sucesso!');
+  document.getElementById('novoNomeMotorista').value = '';
+  atualizarListaCadastros();
+}
+
+function atualizarListaCadastros() {
+  const container = document.getElementById('listaMotoristasCadastrados');
+  if (motoristas.length === 0) {
+    container.innerHTML = '<p style="color: #9CA3AF;">Nenhum motorista cadastrado.</p>';
+    return;
+  }
+  
+  container.innerHTML = motoristas.map((m, index) => `
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; border-bottom: 1px solid #374151;">
+      <div style="font-weight: 600;">${m}</div>
+      <button onclick="removerMotorista(${index})" style="width: auto; padding: 0.25rem 0.5rem; background: #E53E3E; font-size: 0.8rem;">Remover</button>
+    </div>
+  `).join('');
+}
+
+function removerMotorista(index) {
+  if (confirm('Deseja remover este motorista?')) {
+    motoristas.splice(index, 1);
+    localStorage.setItem('motoristasBenedetti', JSON.stringify(motoristas));
+    atualizarListaCadastros();
+  }
+}
+
+// ==========================================
+// INICIALIZAÇÃO DE CAMPOS
+// ==========================================
+
+function inicializarResponsaveis() {
+  const select = document.getElementById('responsavel');
+  responsaveisPadrao.forEach(resp => {
+    const option = document.createElement('option');
+    option.value = resp;
+    option.textContent = resp;
+    select.appendChild(option);
+  });
+}
+
+function setDataAtual() {
+  document.getElementById('dataRecebimento').valueAsDate = new Date();
+}
+
+// ==========================================
+// ANÁLISE DE COMBUSTÍVEL CONFORME ANP
+// ==========================================
+
+document.getElementById('tipo').addEventListener('change', function() {
+  const t = this.value;
+  document.getElementById('field-percent').style.display = t === 'gasolina' ? 'block' : 'none';
+  document.getElementById('field-ph').style.display = t === 'etanol' ? 'block' : 'none';
+  document.getElementById('resultado').style.display = 'none';
+  document.getElementById('btnPDF').style.display = 'none';
+  document.getElementById('btnWhatsapp').style.display = 'none';
+});
+
+document.getElementById('btnCalcular').addEventListener('click', () => {
+  // Validação de campos obrigatórios
+  const camposObrigatorios = ['nf', 'dataRecebimento', 'amostra', 'cnpjDistribuidorInput', 'fornecedor', 
+                              'litros', 'cnpjTransportadorInput', 'transportador', 'motorista', 'placa', 
+                              'lacre', 'cnpjPostoInput', 'posto', 'responsavel', 'tipo', 'temp', 'dens', 
+                              'aspecto', 'cor'];
+  
+  for (let campo of camposObrigatorios) {
+    if (!document.getElementById(campo).value) {
+      alert(`Preencha o campo: ${document.querySelector(`label[for="${campo}"]`)?.textContent || campo}`);
+      return;
+    }
+  }
+  
+  const tipo = document.getElementById('tipo').value;
+  const temp = parseFloat(document.getElementById('temp').value);
+  const dens = parseFloat(document.getElementById('dens').value);
+  
+  // Validações específicas por tipo
+  if (tipo === 'gasolina') {
+    if (!document.getElementById('percent').value) {
+      alert('Preencha o teor de etanol para gasolina!');
+      return;
+    }
+  } else if (tipo === 'etanol') {
+    if (!document.getElementById('ph').value) {
+      alert('Preencha o pH para etanol!');
+      return;
+    }
+  }
+  
+  const ref = densRef[tipo][temp];
+  if (!ref) {
+    alert(`Sem referência ANP para ${temp}°C. Verifique a temperatura.`);
+    return;
+  }
+  
+  // Verificação de conformidade
+  let ok = dens >= ref.min && dens <= ref.max;
+  let teorStatus = '';
+  let conformidades = [];
+  let naoConformidades = [];
+
+  // Verificar densidade
+  if (dens >= ref.min && dens <= ref.max) {
+    conformidades.push(`Massa específica: ${dens} g/cm³ (Faixa: ${ref.min.toFixed(4)} - ${ref.max.toFixed(4)})`);
+  } else {
+    naoConformidades.push(`Massa específica FORA DA FAIXA: ${dens} g/cm³ (Faixa: ${ref.min.toFixed(4)} - ${ref.max.toFixed(4)})`);
+    ok = false;
+  }
+
+  // Verificações específicas
+  if (tipo === 'gasolina') {
+    const percent = parseFloat(document.getElementById('percent').value);
+    // FAIXA CORRIGIDA: 18% a 30% conforme resolução ANP vigente
+    if (percent >= 18 && percent <= 30) {
+      conformidades.push(`Teor de etanol: ${percent}% (Conforme Resolução ANP vigente - máximo 30%)`);
+      teorStatus = `${percent}% - CONFORME`;
+    } else {
+      naoConformidades.push(`Teor de etanol FORA DA FAIXA: ${percent}% (Deve ser 18% a 30%)`);
+      teorStatus = `${percent}% - NÃO CONFORME`;
+      ok = false;
+    }
+  } else if (tipo === 'etanol') {
+    const ph = parseFloat(document.getElementById('ph').value);
+    if (ph >= 6.0 && ph <= 8.0) {
+      conformidades.push(`pH: ${ph} (Conforme Res. 1.075/2021)`);
+      teorStatus = `pH ${ph} - CONFORME`;
+    } else {
+      naoConformidades.push(`pH FORA DA FAIXA: ${ph} (Deve ser 6,0 a 8,0)`);
+      teorStatus = `pH ${ph} - NÃO CONFORME`;
+      ok = false;
+    }
+  }
+
+  // Verificar aspecto
+  const aspecto = document.getElementById('aspecto').value;
+  if (aspecto === 'I') {
+    conformidades.push('Aspecto: Límpido e isento de impurezas');
+  } else {
+    naoConformidades.push(`Aspecto: ${document.getElementById('aspecto').options[document.getElementById('aspecto').selectedIndex].text}`);
+    if (aspecto === 'IV') ok = false; // Turvo e com impurezas = não conforme
+  }
+
+  // Exibir Resultados
+  const statusEl = document.getElementById('status');
+  statusEl.textContent = ok ? '✓ PRODUTO CONFORME ANP' : '✖ PRODUTO NÃO CONFORME';
+  statusEl.className = 'status ' + (ok ? 'ok' : 'fail');
+  
+  let infoHTML = `
+    <div class="item"><strong>Nota Fiscal:</strong> ${document.getElementById('nf').value}</div>
+    <div class="item"><strong>Data Recebimento:</strong> ${document.getElementById('dataRecebimento').value}</div>
+    <div class="item"><strong>Amostra:</strong> ${document.getElementById('amostra').value}</div>
+    <div class="item"><strong>Distribuidor:</strong> ${document.getElementById('fornecedor').value}</div>
+    <div class="item"><strong>CNPJ Distribuidor:</strong> ${document.getElementById('cnpjDistribuidorInput').value}</div>
+    <div class="item"><strong>Volume:</strong> ${document.getElementById('litros').value} L</div>
+    <div class="item"><strong>Transportador:</strong> ${document.getElementById('transportador').value}</div>
+    <div class="item"><strong>CNPJ Transportador:</strong> ${document.getElementById('cnpjTransportadorInput').value}</div>
+    <div class="item"><strong>Motorista:</strong> ${document.getElementById('motorista').value}</div>
+    <div class="item"><strong>Placa:</strong> ${document.getElementById('placa').value}</div>
+    <div class="item"><strong>Lacre:</strong> ${document.getElementById('lacre').value}</div>
+    <div class="item"><strong>Posto:</strong> ${document.getElementById('posto').value}</div>
+    <div class="item"><strong>CNPJ Posto:</strong> ${document.getElementById('cnpjPostoInput').value}</div>
+    <div class="item"><strong>Responsável:</strong> ${document.getElementById('responsavel').value}</div>
+    <div class="item"><strong>Tipo:</strong> ${tipo.toUpperCase()}</div>
+    <div class="item"><strong>Temperatura:</strong> ${temp}°C</div>
+    <div class="item"><strong>Densidade:</strong> ${dens} g/cm³</div>
+    <div class="item"><strong>Aspecto:</strong> ${document.getElementById('aspecto').options[document.getElementById('aspecto').selectedIndex].text}</div>
+    <div class="item"><strong>Cor:</strong> ${document.getElementById('cor').value}</div>
+  `;
+
+  if (tipo === 'gasolina') {
+    infoHTML += `<div class="item"><strong>Teor Etanol:</strong> ${teorStatus}</div>`;
+  } else if (tipo === 'etanol') {
+    infoHTML += `<div class="item"><strong>pH:</strong> ${teorStatus}</div>`;
+  }
+
+  document.getElementById('dadosInfo').innerHTML = infoHTML;
+  
+  let refHTML = `
+    <div class="item"><strong>Resolução:</strong> ANP nº 9/2007 (alterada)</div>
+    <div class="item"><strong>Temp. Referência:</strong> ${temp}°C</div>
+    <div class="item"><strong>Densidade Mín:</strong> ${ref.min.toFixed(4)} g/cm³</div>
+    <div class="item"><strong>Densidade Máx:</strong> ${ref.max.toFixed(4)} g/cm³</div>
+    <div class="item"><strong>Data/Hora Análise:</strong> ${new Date().toLocaleString('pt-BR')}</div>
+    <div class="divider"></div>
+    <div class="section-title">Conformidades:</div>
+    ${conformidades.map(c => `<div class="item" style="color: #10B981;">✓ ${c}</div>`).join('')}
+    ${naoConformidades.length > 0 ? `
+      <div class="section-title" style="margin-top: 0.5rem;">Não Conformidades:</div>
+      ${naoConformidades.map(n => `<div class="item" style="color: #E53E3E;">✖ ${n}</div>`).join('')}
+    ` : ''}
+  `;
+  
+  document.getElementById('dadosRef').innerHTML = refHTML;
+  document.getElementById('resultado').style.display = 'block';
+  document.getElementById('btnWhatsapp').style.display = 'block';
+  document.getElementById('btnPDF').style.display = 'block';
+});
+
+// ==========================================
+// COMPARTILHAMENTO WHATSAPP
+// ==========================================
+
+document.getElementById('btnWhatsapp').onclick = function() {
+  const status = document.getElementById('status').textContent;
+  const dados = document.getElementById('dadosInfo').textContent;
+  const ref = document.getElementById('dadosRef').textContent;
+  const txt = `*REGISTRO DE ANÁLISE DE QUALIDADE - REDE BENEDETTI*\n\n` +
+              `*Status:* ${status}\n\n` +
+              `*DADOS DO RECEBIMENTO:*\n${dados}\n\n` +
+              `*REFERÊNCIAS ANP:*\n${ref}\n\n` +
+              `_Documento gerado automaticamente conforme Resolução ANP nº 9/2007_`;
+  
+  const url = "https://wa.me/?text=" + encodeURIComponent(txt);
+  window.open(url, '_blank');
+};
+
+// ==========================================
+// GERAÇÃO DE PDF PADRÃO ANP
+// ==========================================
+
+document.getElementById('btnPDF').addEventListener('click', () => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  // Configurações iniciais
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 20;
+  let y = 20;
+  
+  // Função helper para adicionar linha
+  const addLine = (text, x, yPos, fontSize = 10, bold = false) => {
+    doc.setFontSize(fontSize);
+    doc.setFont('helvetica', bold ? 'bold' : 'normal');
+    doc.text(text, x, yPos);
+  };
+  
+  // Função para desenhar caixa
+  const drawBox = (x, yPos, w, h, fill = false) => {
+    if (fill) {
+      doc.setFillColor(240, 240, 240);
+      doc.rect(x, yPos, w, h, 'F');
+    }
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.3);
+    doc.rect(x, yPos, w, h, 'S');
+  };
+  
+  // CABEÇALHO DO DOCUMENTO
+  doc.setFillColor(0, 82, 147); // Azul ANP
+  doc.rect(0, 0, pageWidth, 35, 'F');
+  
+  doc.setTextColor(255, 255, 255);
+  addLine('REGISTRO DE ANÁLISE DA QUALIDADE', pageWidth/2, 15, 14, true);
+  addLine('REDE BENEDETTI - POSTOS REVENDEDORES', pageWidth/2, 23, 10);
+  addLine('Conforme Resolução ANP nº 9/2007', pageWidth/2, 30, 8);
+  
+  y = 45;
+  
+  // SEÇÃO 1: IDENTIFICAÇÃO DO RECEBIMENTO
+  doc.setTextColor(0, 0, 0);
+  addLine('1. IDENTIFICAÇÃO DO RECEBIMENTO', margin, y, 11, true);
+  y += 8;
+  
+  drawBox(margin, y, pageWidth - 40, 40);
+  
+  addLine(`Nota Fiscal: ${document.getElementById('nf').value}`, margin + 5, y + 8);
+  addLine(`Data Recebimento: ${document.getElementById('dataRecebimento').value}`, margin + 5, y + 16);
+  addLine(`Identificação da Amostra: ${document.getElementById('amostra').value}`, margin + 5, y + 24);
+  addLine(`Volume Recebido: ${document.getElementById('litros').value} litros`, margin + 5, y + 32);
+  
+  y += 50;
+  
+  // SEÇÃO 2: DADOS DO DISTRIBUIDOR
+  addLine('2. DISTRIBUIDOR', margin, y, 11, true);
+  y += 8;
+  
+  drawBox(margin, y, pageWidth - 40, 25);
+  
+  addLine(`Razão Social: ${document.getElementById('fornecedor').value}`, margin + 5, y + 8);
+  addLine(`CNPJ: ${document.getElementById('cnpjDistribuidorInput').value}`, margin + 5, y + 16);
+  
+  y += 35;
+  
+  // SEÇÃO 3: DADOS DO TRANSPORTADOR
+  addLine('3. TRANSPORTADOR', margin, y, 11, true);
+  y += 8;
+  
+  drawBox(margin, y, pageWidth - 40, 35);
+  
+  addLine(`Razão Social: ${document.getElementById('transportador').value}`, margin + 5, y + 8);
+  addLine(`CNPJ: ${document.getElementById('cnpjTransportadorInput').value}`, margin + 5, y + 16);
+  addLine(`Motorista: ${document.getElementById('motorista').value}`, margin + 5, y + 24);
+  addLine(`Placa do Caminhão-Tanque: ${document.getElementById('placa').value}`, margin + 5, y + 32);
+  
+  y += 45;
+  
+  // SEÇÃO 4: POSTO REVENDEDOR
+  addLine('4. POSTO REVENDEDOR DESTINATÁRIO', margin, y, 11, true);
+  y += 8;
+  
+  drawBox(margin, y, pageWidth - 40, 30);
+  
+  addLine(`Razão Social: ${document.getElementById('posto').value}`, margin + 5, y + 8);
+  addLine(`CNPJ: ${document.getElementById('cnpjPostoInput').value}`, margin + 5, y + 16);
+  addLine(`Endereço: ${document.getElementById('enderecoPosto').value || 'Não informado'}`, margin + 5, y + 24);
+  
+  y += 40;
+  
+  // Verificar se precisa de nova página
+  if (y > 250) {
+    doc.addPage();
+    y = 20;
+  }
+  
+  // SEÇÃO 5: RESULTADOS DAS ANÁLISES
+  addLine('5. RESULTADOS DAS ANÁLISES DE QUALIDADE', margin, y, 11, true);
+  y += 8;
+  
+  const tipo = document.getElementById('tipo').value;
+  const tipoTexto = tipo === 'gasolina' ? 'GASOLINA C (E27)' : tipo === 'etanol' ? 'ETANOL HIDRATADO COMBUSTÍVEL' : 'ÓLEO DIESEL B';
+  
+  drawBox(margin, y, pageWidth - 40, tipo === 'gasolina' ? 75 : (tipo === 'etanol' ? 85 : 65));
+  
+  // Tabela de resultados
+  let rowY = y + 8;
+  
+  // Produto
+  addLine(`Produto: ${tipoTexto}`, margin + 5, rowY);
+  rowY += 8;
+  
+  // Aspecto e Cor
+  const aspectoText = document.getElementById('aspecto').options[document.getElementById('aspecto').selectedIndex].text;
+  addLine(`Aspecto Visual: ${aspectoText}`, margin + 5, rowY);
+  rowY += 8;
+  
+  addLine(`Cor Visual: ${document.getElementById('cor').value}`, margin + 5, rowY);
+  rowY += 8;
+  
+  // Temperatura e Densidade
+  const temp = document.getElementById('temp').value;
+  const dens = document.getElementById('dens').value;
+  const ref = densRef[tipo][parseFloat(temp)];
+  
+  addLine(`Temperatura da Amostra: ${temp}°C`, margin + 5, rowY);
+  rowY += 8;
+  
+  addLine(`Massa Específica/Densidade: ${dens} g/cm³`, margin + 5, rowY);
+  rowY += 8;
+  
+  addLine(`Faixa de Referência ANP: ${ref.min.toFixed(4)} a ${ref.max.toFixed(4)} g/cm³`, margin + 5, rowY);
+  rowY += 8;
+  
+  // Campos específicos
+  if (tipo === 'gasolina') {
+    const percent = document.getElementById('percent').value;
+    // FAIXA CORRIGIDA: 18% a 30%
+    const statusEtanol = (parseFloat(percent) >= 18 && parseFloat(percent) <= 30) ? 'CONFORME' : 'NÃO CONFORME';
+    addLine(`Teor de Etanol Anidro: ${percent}% m/m (${statusEtanol})`, margin + 5, rowY);
+    rowY += 8;
+    addLine(`Especificação ANP: 18% a 30% m/m (Resolução vigente - máximo 30%)`, margin + 5, rowY);
+  } else if (tipo === 'etanol') {
+    const ph = document.getElementById('ph').value;
+    const statusPH = (parseFloat(ph) >= 6.0 && parseFloat(ph) <= 8.0) ? 'CONFORME' : 'NÃO CONFORME';
+    addLine(`pH: ${ph} (${statusPH})`, margin + 5, rowY);
+    rowY += 8;
+    addLine(`Especificação ANP: 6,0 a 8,0 (Res. 1.075/2021)`, margin + 5, rowY);
+    rowY += 8;
+    addLine(`Teor Alcoólico: Verificado via massa específica`, margin + 5, rowY);
+  }
+  
+  y = rowY + 15;
+  
+  // Verificar nova página
+  if (y > 250) {
+    doc.addPage();
+    y = 20;
+  }
+  
+  // SEÇÃO 6: CONCLUSÃO
+  addLine('6. CONCLUSÃO', margin, y, 11, true);
+  y += 8;
+  
+  const status = document.getElementById('status').textContent;
+  const isConforme = status.includes('CONFORME');
+  
+  drawBox(margin, y, pageWidth - 40, 25, false);
+  
+  if (isConforme) {
+    doc.setFillColor(209, 250, 229); // Verde claro
+    doc.rect(margin, y, pageWidth - 40, 25, 'F');
+    doc.setTextColor(6, 78, 59);
+    addLine('✓ PRODUTO APROVADO PARA RECEBIMENTO', margin + 5, y + 12, 12, true);
+    addLine('Todas as características analisadas estão dentro das especificações da ANP.', margin + 5, y + 20, 9);
+  } else {
+    doc.setFillColor(254, 226, 226); // Vermelho claro
+    doc.rect(margin, y, pageWidth - 40, 25, 'F');
+    doc.setTextColor(153, 27, 27);
+    addLine('✖ PRODUTO REPROVADO - NÃO RECEBER', margin + 5, y + 12, 12, true);
+    addLine('Produto fora das especificações. Comunicar ANP em até 24h.', margin + 5, y + 20, 9);
+  }
+  
+  doc.setTextColor(0, 0, 0);
+  y += 35;
+  
+  // SEÇÃO 7: RESPONSÁVEIS
+  addLine('7. RESPONSÁVEIS PELO RECEBIMENTO', margin, y, 11, true);
+  y += 8;
+  
+  drawBox(margin, y, pageWidth - 40, 40);
+  
+  addLine(`Responsável pelo Recebimento: ${document.getElementById('responsavel').value}`, margin + 5, y + 8);
+  addLine(`Lacre do Compartimento: ${document.getElementById('lacre').value}`, margin + 5, y + 16);
+  addLine(`Data/Hora da Análise: ${new Date().toLocaleString('pt-BR')}`, margin + 5, y + 24);
+  
+  // Espaço para assinatura
+  doc.line(margin + 5, y + 35, margin + 95, y + 35);
+  addLine('Assinatura do Responsável', margin + 5, y + 39, 8);
+  
+  y += 50;
+  
+  // RODAPÉ
+  doc.setDrawColor(200);
+  doc.line(margin, 280, pageWidth - margin, 280);
+  
+  doc.setFontSize(8);
+  doc.setTextColor(100, 100, 100);
+  doc.text(`Documento gerado eletronicamente - Sistema Rede Benedetti - Página 1 de 1`, pageWidth/2, 287, { align: 'center' });
+  doc.text(`Resolução ANP nº 9/2007 (alterada) - Registro de Análise da Qualidade`, pageWidth/2, 292, { align: 'center' });
+  
+  // Salvar PDF
+  const nf = document.getElementById('nf').value || 'sem_nf';
+  const data = document.getElementById('dataRecebimento').value || new Date().toISOString().split('T')[0];
+  doc.save(`RAQ_${tipo}_${nf}_${data}.pdf`);
+});
+
+// ==========================================
+// NAVEGAÇÃO POR ABAS
+// ==========================================
+
+function showTab(tabName) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  
+  if (tabName === 'analise') {
+    document.getElementById('tab-analise').classList.remove('hidden');
+    document.getElementById('tab-cadastros').classList.add('hidden');
+  } else {
+    document.getElementById('tab-analise').classList.add('hidden');
+    document.getElementById('tab-cadastros').classList.remove('hidden');
+    atualizarListaCadastros();
+  }
+}
+
+// ==========================================
+// INICIALIZAÇÃO
+// ==========================================
+
+document.addEventListener('DOMContentLoaded', function() {
+  inicializarResponsaveis();
+  setDataAtual();
+  atualizarListaCadastros();
+  initAutocomplete(); // NOVO: Inicializar autocomplete
+  
+  // Formatação automática de CNPJ
+  ['cnpjDistribuidorInput', 'cnpjTransportadorInput', 'cnpjPostoInput'].forEach(id => {
+    document.getElementById(id).addEventListener('input', function() {
+      formatarCNPJ(this);
+    });
+  });
+});
+</script>
+</body>
+</html>
