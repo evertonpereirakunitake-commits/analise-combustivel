@@ -298,14 +298,7 @@ function formatarCNPJ(input) {
 }
 
 function mascararCNPJ(input) {
-  let value = input.value.replace(/\D/g, '');
-  if (value.length <= 14) {
-    value = value.replace(/^(\d{2})(\d)/, '$1.$2');
-    value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
-    value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
-    value = value.replace(/(\d{4})(\d)/, '$1-$2');
-  }
-  input.value = value;
+  formatarCNPJ(input);
 }
 
 function limparCNPJ(cnpj) {
@@ -317,23 +310,46 @@ function limparCNPJ(cnpj) {
 // ==========================================
 
 async function consultarBrasilAPI(cnpj) {
-  const resp = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`, { signal: AbortSignal.timeout(10000) });
-  if (!resp.ok) throw new Error('BrasilAPI: CNPJ não encontrado');
-  const data = await resp.json();
-  const nome = data.razao_social || data.nome_fantasia || 'Nome não disponível';
-  const partes = [data.logradouro, data.numero, data.bairro, data.municipio, data.uf].filter(Boolean);
-  const endereco = partes.length > 0 ? partes.join(', ') : '';
-  return { nome, endereco };
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10000);
+  try {
+    const resp = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`, { signal: controller.signal });
+    if (!resp.ok) throw new Error('BrasilAPI: CNPJ não encontrado');
+    const data = await resp.json();
+    const nome = data.razao_social || data.nome_fantasia || 'Nome não disponível';
+    const partes = [
+      data.logradouro, data.numero,
+      data.bairro ? `– ${data.bairro}` : '',
+      data.municipio ? `– ${data.municipio}` : '',
+      data.uf ? `/${data.uf}` : ''
+    ].filter(Boolean);
+    const endereco = partes.length > 2 ? partes.join(' ') : '';
+    return { nome, endereco };
+  } finally {
+    clearTimeout(timer);
+  }
 }
+
 async function consultarReceitaWS(cnpj) {
-  const resp = await fetch(`https://receitaws.com.br/v1/cnpj/${cnpj}`, { signal: AbortSignal.timeout(10000) });
-  if (!resp.ok) throw new Error('ReceitaWS: CNPJ não encontrado');
-  const data = await resp.json();
-  if (data.status === 'ERROR') throw new Error(data.message || 'CNPJ não encontrado');
-  const nome = data.nome || 'Nome não disponível';
-  const partes = [data.logradouro, data.numero, data.bairro, data.municipio, data.uf].filter(Boolean);
-  const endereco = partes.length > 0 ? partes.join(', ') : '';
-  return { nome, endereco };
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10000);
+  try {
+    const resp = await fetch(`https://receitaws.com.br/v1/cnpj/${cnpj}`, { signal: controller.signal });
+    if (!resp.ok) throw new Error('ReceitaWS: CNPJ não encontrado');
+    const data = await resp.json();
+    if (data.status === 'ERROR') throw new Error(data.message || 'CNPJ não encontrado');
+    const nome = data.nome || 'Nome não disponível';
+    const partes = [
+      data.logradouro, data.numero,
+      data.bairro ? `– ${data.bairro}` : '',
+      data.municipio ? `– ${data.municipio}` : '',
+      data.uf ? `/${data.uf}` : ''
+    ].filter(Boolean);
+    const endereco = partes.length > 2 ? partes.join(' ') : '';
+    return { nome, endereco };
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function buscarCNPJ(tipo) {
@@ -354,12 +370,11 @@ async function buscarCNPJ(tipo) {
   const cacheKey = tipo === 'distribuidor' ? 'distribuidoresHistorico' : tipo === 'transportador' ? 'transportadoresHistorico' : 'postosHistorico';
   const cache = JSON.parse(localStorage.getItem(cacheKey)) || {};
   if (cache[cnpj]) {
-    const cached = cache[cnpj];
-    const cachedNome = typeof cached === 'object' ? cached.nome : cached;
-    const cachedEndereco = typeof cached === 'object' ? (cached.endereco || '') : '';
-    document.getElementById(nomeId).value = cachedNome;
-    if (tipo === 'posto' && document.getElementById('enderecoPosto')) {
-      document.getElementById('enderecoPosto').value = cachedEndereco;
+    document.getElementById(nomeId).value = cache[cnpj].nome || cache[cnpj];
+    if (tipo === 'posto') {
+      // Tenta endereço da base local pelo CNPJ
+      const postoLocal = Object.values(postosBenedetti).find(p => limparCNPJ(p.cnpj) === cnpj);
+      document.getElementById('enderecoPosto').value = postoLocal ? postoLocal.endereco : (cache[cnpj].endereco || '');
     }
     document.getElementById(successId).style.display = 'inline';
     document.getElementById(errorId).style.display = 'none';
@@ -371,15 +386,20 @@ async function buscarCNPJ(tipo) {
   document.getElementById(successId).style.display = 'none';
   document.getElementById(errorId).style.display = 'none';
   
-  let resultado = null;
+  let nome = null;
+  let endereco = '';
   let erroMsg = 'CNPJ não encontrado';
 
   try {
-    resultado = await consultarBrasilAPI(cnpj);
+    const resultado = await consultarBrasilAPI(cnpj);
+    nome = resultado.nome;
+    endereco = resultado.endereco;
   } catch (e1) {
     console.warn('BrasilAPI falhou, tentando ReceitaWS...', e1.message);
     try {
-      resultado = await consultarReceitaWS(cnpj);
+      const resultado = await consultarReceitaWS(cnpj);
+      nome = resultado.nome;
+      endereco = resultado.endereco;
     } catch (e2) {
       console.error('ReceitaWS também falhou:', e2.message);
       if (e2.message && e2.message.includes('não encontrado')) {
@@ -392,14 +412,17 @@ async function buscarCNPJ(tipo) {
 
   document.getElementById(loadingId).style.display = 'none';
 
-  if (resultado) {
-    document.getElementById(nomeId).value = resultado.nome;
-    // Preencher endereço se for posto revendedor
-    if (tipo === 'posto' && document.getElementById('enderecoPosto')) {
-      document.getElementById('enderecoPosto').value = resultado.endereco || '';
+  if (nome) {
+    document.getElementById(nomeId).value = nome;
+
+    // Para posto: preencher endereço (base local tem prioridade)
+    if (tipo === 'posto') {
+      const postoLocal = Object.values(postosBenedetti).find(p => limparCNPJ(p.cnpj) === cnpj);
+      document.getElementById('enderecoPosto').value = postoLocal ? postoLocal.endereco : endereco;
     }
-    // Salvar no cache local (incluindo endereço)
-    cache[cnpj] = resultado;
+
+    // Salvar no cache local
+    cache[cnpj] = { nome, endereco };
     localStorage.setItem(cacheKey, JSON.stringify(cache));
     document.getElementById(successId).style.display = 'inline';
   } else {
